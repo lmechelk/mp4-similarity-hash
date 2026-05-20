@@ -6,8 +6,8 @@ DB_NAME
 Name der Datenbank
 zB Vision, Eva, Selfmade
 
-DEVICE
-Eindeutige ID des Geräts
+ID
+Eindeutige Kennung des Geräts ("Device" bei Eva/Vision) oder der AI
 zB D01, AI01
 
 BRAND
@@ -22,6 +22,11 @@ MEDIA_TYPE
 Dateiendung bzw. Containerformat
 zB MP4, MOV
 
+CONTENT_SOURCE
+Originäre Quelle der Videodatei um zwischen Kameras, vollständig ki-generierten Videos (mittels Text-to-Video) 
+oder Videos, die auf Bild-Vorlagen basieren (Image-to-Video), zu unterscheiden
+zB DIGITAL_CAMERA, AI_GENERATION, MIXED
+
 CONTENT_TYPE
 Kontext der Aufnahme
 zB flat, indoor, outdoor, deepfake, synthetic
@@ -30,8 +35,8 @@ PROCESSING
 Primäre Verarbeitung des Videos
 zB native, youtube, whattsapp, ai
 
-POST_PROCESSING
-Zusätzliche Verarbeitung des Videos (nur Eva-DB)
+TAMPERING
+Nachträgliche Veränderung des Videos (nur Eva-DB)
 zB None, Avidemux
 
 STRUCTURE_PRETTY
