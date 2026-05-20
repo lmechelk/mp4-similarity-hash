@@ -1,0 +1,47 @@
+PATH
+Dateipfad
+zB C:\Testdaten\EVA\D01_flat_yt.mp4
+
+DB_NAME
+Name der Datenbank
+zB Vision, Eva, Selfmade
+
+DEVICE
+Eindeutige ID des Geräts
+zB D01, AI01
+
+BRAND
+Hersteller des Smartphones oder der KI
+zB Samsung, Grok
+
+MODEL
+Genaue Version des Smartphones oder der KI
+zB GalaxyS3Mini, Imagine_0.9
+
+MEDIA_TYPE
+Dateiendung bzw. Containerformat
+zB MP4, MOV
+
+CONTENT_TYPE
+Kontext der Aufnahme
+zB flat, indoor, outdoor, deepfake, synthetic
+
+PROCESSING
+Primäre Verarbeitung des Videos
+zB native, youtube, whattsapp, ai
+
+POST_PROCESSING
+Zusätzliche Verarbeitung des Videos (nur Eva-DB)
+zB None, Avidemux
+
+STRUCTURE_PRETTY
+Gut lesbarer String der MP4-Struktur (nur nice to have)
+zB moov(mvhd,trak(tkhd))
+
+STRUCTURE_JSON
+Exakte Baumstruktur als JSON-String der zur N-Gram-Generierung genutzt wird
+zB [{"type":"moov","children":[{"type":"mvhd"}]}]
+
+NGRAM_2
+Fortlaufende Paare der flachen Struktur als alphabetische String-Liste ohne Dopplungen
+zB ['avc1_avcC', 'avcC_btrt', 'btrt_stts', 'ctts_stsc']
