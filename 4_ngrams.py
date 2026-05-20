@@ -14,7 +14,10 @@ NGRAM_SIZES = [2, 3, 4]
 def _flatten_tree(nodes: list) -> list:
     """
     Recursively extracts the 'type' string from the nested JSON dictionary 
-    and returns a flattened sequential list of atoms.
+    and returns a flattened sequential list of atoms
+
+    input: json_tree
+    output: flat_list = ['moov', 'mvhd', 'mvhd', 'trak']
     """
     flat_list = []
     for node in nodes:
@@ -24,19 +27,22 @@ def _flatten_tree(nodes: list) -> list:
             flat_list.extend(_flatten_tree(node["children"]))
     return flat_list
 
-def _generate_ngrams(sequence: list, n: int) -> list:
+def _generate_similarity_digest(sequence: list, n: int) -> str:
     """
-    Generates unique, alphabetically sorted n-grams from a flat sequence.
-    Example: ['moov', 'mvhd', 'moov', 'mvhd'] (n=2) -> ['moov_mvhd']
+    Generates unique, alphabetically sorted n-grams from a flat sequence
+    and concatenates them into a single continuous string (Similarity Digest)
+    
+    input: sequence = ['moov', 'mvhd', 'mvhd', 'trak'], n = 2
+    output: similarity_digest with n-grams -> "moovmvhdmvhdtrak"
     """
     if len(sequence) < n:
-        return []
+        return ""
         
-    # 1. Create sliding window of size n
-    raw_ngrams = ["_".join(sequence[i:i+n]) for i in range(len(sequence) - n + 1)]
+    # Create sliding window of size n to generate n-grams
+    raw_ngrams = ["".join(sequence[i:i+n]) for i in range(len(sequence) - n + 1)]
     
-    # 2. Remove duplicates (via set) and sort alphabetically
-    return sorted(list(set(raw_ngrams)))
+    # Remove duplicates via set, sort alphabetically, and join into one string
+    return "".join(sorted(list(set(raw_ngrams))))
 
 # ==========================================
 # MAIN PROCESSING
@@ -44,27 +50,33 @@ def _generate_ngrams(sequence: list, n: int) -> list:
 def process_ngrams(input_csv: str, output_csv: str, ngram_sizes: list):
     """
     Reads the parsed structure, flattens the JSON tree, calculates the 
-    unique/sorted n-grams, and appends them as new columns to the CSV.
+    Similarity Digests, and appends them as new columns to the CSV
+
+    input: csv with 'structure_json' column, list of n-gram sizes
+    output: csv with new columns for each n-gram size containing the Similarity Digest
     """
+
+    # Basic validation to ensure the input file exists before processing
     if not os.path.isfile(input_csv):
         print(f"Error: Input file not found -> {input_csv}")
         return
-        
     print(f"Loading dataset: {input_csv}")
     
     # Auto-detect separator to prevent reading errors, but force ';' later
     df = pd.read_csv(input_csv, sep=None, engine='python')
     
+    # Validate that the critical 'structure_json' column exists before processing
     if 'structure_json' not in df.columns:
         print("Error: Critical column 'structure_json' is missing in the dataset.")
         return
 
-    # Pre-allocate dictionary arrays for the new n-gram columns dynamically
+    # Initialize empty lists for each n-gram size to store the generated digests
     ngram_columns = {f"ngram_{n}": [] for n in ngram_sizes}
     total_files = len(df)
     
+    # Iterate through each row, process the JSON structure, and generate Similarity Digests
     for index, row in df.iterrows():
-        # Print simple progress tracking to the console
+        # Simple console progress tracking
         if (index + 1) % 500 == 0 or (index + 1) == total_files:
             print(f"Processing n-grams... {index + 1}/{total_files}")
             
@@ -79,27 +91,25 @@ def process_ngrams(input_csv: str, output_csv: str, ngram_sizes: list):
         # Flatten the deep structure into a sequential list
         flat_seq = _flatten_tree(tree)
         
-        # Generate and store n-grams for every requested size
+        # Generate and store the Similarity Digest for every requested size
         for n in ngram_sizes:
-            ngrams = _generate_ngrams(flat_seq, n)
-            # Store as the exact string representation of a Python list (e.g., "['a', 'b']")
-            ngram_columns[f"ngram_{n}"].append(str(ngrams))
+            digest = _generate_similarity_digest(flat_seq, n)
+            ngram_columns[f"ngram_{n}"].append(digest)
             
-    # Append the dynamically created n-gram columns to the original DataFrame
+    # Append the dynamically created digest columns to the DataFrame
     for col_name, col_data in ngram_columns.items():
         df[col_name] = col_data
         
-    # Export keeping all old columns + new n-gram columns, enforcing semicolon
+    # Export keeping all old columns + new digest columns, enforcing semicolon
     df.to_csv(output_csv, sep=';', index=False)
-    print(f"Finished! Exported dataset with unique/sorted n-grams to: {output_csv}")
+    print(f"Finished! Exported dataset with Similarity Digests to: {output_csv}")
 
-# ==========================================
-# ENTRY POINT
-# ==========================================
 if __name__ == "__main__":
-    
-    # Define targets for quick execution
-    INPUT_CSV = "3_selfmade_ai.csv" 
-    OUTPUT_CSV = "4_selfmade_ai.csv"
+    # ==========================================
+    # TESTDATA
+    # ==========================================
+        
+    INPUT_CSV = r".\3_parse\3_testdaten.csv"
+    OUTPUT_CSV = r".\4_ngrams\4_testdaten.csv"
     
     process_ngrams(INPUT_CSV, OUTPUT_CSV, NGRAM_SIZES)

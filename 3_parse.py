@@ -37,9 +37,8 @@ class Mp4Parser:
     """
     def __init__(self, file_path):
         
-        self.file_path = file_path                      # Store the full path for file access 
-        
         # Extract filename, parent directory, and grandparent directory
+        self.file_path = file_path
         name = os.path.basename(file_path)
         parent = os.path.basename(os.path.dirname(file_path))
         grandparent = os.path.basename(os.path.dirname(os.path.dirname(file_path)))
