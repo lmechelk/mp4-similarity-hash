@@ -2,10 +2,14 @@ import pandas as pd
 import os
 import sys
 
-def split_dataset_by_value(input_csv: str, column: str, value: str, output_motherload: str, output_rest: str):
+# ==========================================
+# MAIN PROCESSING
+# ==========================================
+def filter_dataset(input_csv: str, column: str, value: str, output_csv: str, mode: str):
     """
-    Filters a dataset by a specific column value, creating one 'motherload' file 
-    with matching rows and one 'rest' file with the remaining rows.
+    Filters a dataset by a specific column value and saves the result to a single output file.
+    Mode 'include': Keeps ONLY rows matching the value.
+    Mode 'exclude': Keeps ALL rows EXCEPT those matching the value.
     """
     if not os.path.isfile(input_csv):
         print(f"Error: Input file not found -> {input_csv}")
@@ -20,34 +24,43 @@ def split_dataset_by_value(input_csv: str, column: str, value: str, output_mothe
         print(f"Error: Column '{column}' not found. Available: {df.columns.tolist()}")
         sys.exit(1)
         
-    print(f"Filtering rows where '{column}' matches '{value}'...")
+    print(f"Applying filter (Mode: {mode.upper()}) where '{column}' matches '{value}'...")
     
     # Perform case-insensitive string comparison for robust filtering
     is_match = df[column].astype(str).str.lower() == str(value).lower()
     
-    # Split dataframe into motherload (matches) and rest (non-matches)
-    df_motherload = df[is_match]
-    df_rest = df[~is_match]
+    # Apply the include/exclude logic
+    if mode.lower() == "include":
+        df_filtered = df[is_match]
+    elif mode.lower() == "exclude":
+        df_filtered = df[~is_match]
+    else:
+        print(f"Error: Unknown mode '{mode}'. Please use 'include' or 'exclude'.")
+        sys.exit(1)
     
-    # Save both dataframes enforcing the established semicolon separator
-    df_motherload.to_csv(output_motherload, sep=';', index=False, encoding='utf-8')
-    df_rest.to_csv(output_rest, sep=';', index=False, encoding='utf-8')
+    # Create the requested output folder if it does not exist yet
+    os.makedirs(os.path.dirname(output_csv) or '.', exist_ok=True)
     
-    print(f"Successfully split dataset:")
-    print(f" -> Motherload ({len(df_motherload)} rows) -> {output_motherload}")
-    print(f" -> Remaining Test Data ({len(df_rest)} rows) -> {output_rest}")
+    # Save the filtered dataframe enforcing the established semicolon separator
+    df_filtered.to_csv(output_csv, sep=';', index=False, encoding='utf-8')
+    
+    print(f"Successfully processed dataset:")
+    print(f" -> Result: {len(df_filtered)} rows exported to -> {output_csv}")
+
 
 if __name__ == "__main__":
+    
     # ==========================================
     # TESTDATA
     # ==========================================
-
+    
     INPUT_FILE = r".\4_ngrams\4_testdaten.csv"
-    FILTER_COLUMN = "brand"
-    FILTER_VALUE = "Grok"
+    FILTER_COLUMN = "processing"
+    FILTER_VALUE = "original"
     
-    # Target output paths specified by you
-    OUTPUT_MOTHERLOAD = r".\4_ngrams\grok.csv"
-    OUTPUT_REST = r".\4_ngrams\testdata_without_grok.csv"
+    # Logic switch: "include" or "exclude"
+    MODE = "include"
     
-    split_dataset_by_value(INPUT_FILE, FILTER_COLUMN, FILTER_VALUE, OUTPUT_MOTHERLOAD, OUTPUT_REST)
+    OUTPUT_FILE = r".\4_ngrams\original.csv"
+    
+    filter_dataset(INPUT_FILE, FILTER_COLUMN, FILTER_VALUE, OUTPUT_FILE, MODE)

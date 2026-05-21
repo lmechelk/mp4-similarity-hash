@@ -8,7 +8,7 @@ import os
 # ==========================================
 
 # Parameters for the Tversky Index
-# 0.0: We do NOT penalize if the test video lacks atoms from the huge Motherload
+# 0.0: We do NOT penalize if the test video lacks atoms from the reference video
 PENALTY_MISSING_IN_TEST = 0.0  
 # 1.0: We DO penalize strictly if the test video contains foreign/new atoms
 PENALTY_EXTRA_IN_TEST = 1.0    
@@ -18,11 +18,7 @@ PENALTY_EXTRA_IN_TEST = 1.0
 # ==========================================
 def _split_digest(digest: str, ngram_size: int) -> set:
     """
-    Splits the continuous Similarity Digest string back into a set of n-grams
-    Since MP4 atoms are strictly 4 characters, chunk size is ngram_size * 4
-
-    input: digest = "moovmvhdmvhdtrak", ngram_size = 2
-    output: set of n-grams -> {"moovmvhd", "mvhdmvhd", "mvhdtrak"}
+    Splits the continuous Similarity Digest string back into a set of n-grams.
     """
     if pd.isna(digest) or not digest:
         return set()
@@ -30,28 +26,21 @@ def _split_digest(digest: str, ngram_size: int) -> set:
     chunk_size = ngram_size * 4
     return {digest[i:i + chunk_size] for i in range(0, len(digest), chunk_size)}
 
-def _calculate_similarity(motherload: set, test_set: set, mode: str) -> float:
+def _calculate_similarity(reference_set: set, test_set: set, mode: str) -> float:
     """
-    Calculates the similarity between the Motherload and a single Test Set.
-    Returns np.nan if a ZeroDivisionError occurs
-
-    input: motherload = set of n-grams from Ground Truth, 
-        test_set = set of n-grams from Test video, 
-        mode = "jaccard" or "tversky"
-    output: similarity score (float)
+    Calculates the similarity between a single Reference file and a single Test file.
+    Returns np.nan if a ZeroDivisionError occurs.
     """
-    intersection = len(motherload & test_set)
+    intersection = len(reference_set & test_set)
     
     try:
         if mode.lower() == 'jaccard':
-            union = len(motherload | test_set)
+            union = len(reference_set | test_set)
             return intersection / union
             
         elif mode.lower() == 'tversky':
-            # missing_in_test: Atoms present in Motherload but missing in Test video
-            missing_in_test = len(motherload - test_set)
-            # extra_in_test: Foreign atoms present in Test video but NOT in Motherload
-            extra_in_test = len(test_set - motherload)
+            missing_in_test = len(reference_set - test_set)
+            extra_in_test = len(test_set - reference_set)
             
             denominator = (intersection + 
                            (PENALTY_MISSING_IN_TEST * missing_in_test) + 
@@ -63,88 +52,89 @@ def _calculate_similarity(motherload: set, test_set: set, mode: str) -> float:
             raise ValueError(f"Unknown similarity mode: {mode}")
             
     except ZeroDivisionError:
-        # Gracefully handle empty datasets/corrupted files by returning NaN
-        print("Warning: ZeroDivisionError encountered during similarity calculation. Returning NaN.")
         return np.nan
 
 # ==========================================
 # MAIN PROCESSING
 # ==========================================
-def compare_datasets(gt_file: str, test_file: str, ngram_size: int, mode: str):
+def compare_datasets(input_file: str, output_file: str, ngram_size: int, mode: str):
     """
-    Reads the Ground Truth file to build a global Motherload set, then 
-    evaluates each row of the Test file against it.
+    Performs an N-to-N comparison between EVERY file within a SINGLE dataset.
+    Exports strictly 3 columns: ground_truth (brand), source (brand), similarity.
     """
-    if not os.path.isfile(gt_file) or not os.path.isfile(test_file):
-        print("Error: One or both input files not found.")
+    if not os.path.isfile(input_file):
+        print(f"Error: Input file not found -> {input_file}")
         return
 
-    print(f"Loading Ground Truth: {gt_file}")
-    df_gt = pd.read_csv(gt_file, sep=';', engine='python')
-    print(f"Loading Test Source: {test_file}")
-    df_test = pd.read_csv(test_file, sep=';', engine='python')
+    print(f"Loading Dataset: {input_file}")
+    df = pd.read_csv(input_file, sep=';', engine='python')
     
     target_col = f"ngram_{ngram_size}"
     
-    # Validate datasets
-    if target_col not in df_gt.columns or target_col not in df_test.columns:
-        print(f"Error: Target column '{target_col}' missing in one of the files.")
+    if target_col not in df.columns:
+        print(f"Error: Target column '{target_col}' missing in the file.")
         return
 
-    # Build the Motherload (Union of all n-gram sets in Ground Truth)
-    print("Building Motherload signature from Ground Truth...")
-    motherload_set = set()
-    for digest in df_gt[target_col]:
-        motherload_set.update(_split_digest(str(digest), ngram_size))
+    # 1. Pre-parse the dataset into memory for performance
+    print("Pre-parsing files into memory...")
+    parsed_data = []
+    for index, row in df.iterrows():
+        digest = str(row.get(target_col, ''))
         
-    print(f"Motherload built: {len(motherload_set)} unique {ngram_size}-grams.")
+        # Keep filename for console warnings, but extract brand for the CSV output
+        fname = Path(str(row.get('path', f'row_{index}'))).stem
+        brand = row.get('brand', 'UNKNOWN')
+        
+        parsed_data.append({
+            "set": _split_digest(digest, ngram_size),
+            "file": fname,
+            "brand": brand
+        })
 
-    # Compare each row of the Test file against the Motherload
-    print(f"Calculating {mode.upper()} similarity for {len(df_test)} test files...")
+    # 2. Perform N-to-N Comparison (Every item against every item)
+    total_comparisons = len(parsed_data) * len(parsed_data)
+    print(f"Starting {total_comparisons} individual comparisons...")
     
-    gt_name = Path(gt_file).stem    # Extract filename without extension
     results = []
     
-    for index, row in df_test.iterrows():
-        test_digest = str(row.get(target_col, ''))
-        test_set = _split_digest(test_digest, ngram_size)
-        
-        # Calculate score
-        score = _calculate_similarity(motherload_set, test_set, mode)
-
-        # Console logging for extreme values
-        file_ref = row.get('path', f"Row {index}")
-        if score == 0.0:
-            print(f"  -> WARNING: Score 0.0 (No overlap) | File: {file_ref}")
-        elif score == 1.0:
-            print(f"  -> INFO: Score 1.0 (Perfect match) | File: {file_ref}")
-        
-        # Append to results
-        results.append({
-            "ground_truth": gt_name,
-            "source": row.get('brand', 'UNKNOWN'),
-            "similarity": round(score, 4) if pd.notna(score) else np.nan
-        })
-        
-    # Generate Output Dataframe
+    # Nested loop using the same parsed list twice
+    for t_data in parsed_data:      # t_data acts as the Test video (source)
+        for r_data in parsed_data:  # r_data acts as the Reference video (ground_truth)
+            
+            score = _calculate_similarity(r_data["set"], t_data["set"], mode)
+            
+            # Warn only on complete structural mismatches (using filename for clarity)
+            if score == 0.0:
+                print(f"  -> WARNING: Score 0.0 | Ref: {r_data['file']} vs Test: {t_data['file']}")
+            
+            # Strictly use the brand for the CSV output
+            results.append({
+                "ground_truth": r_data["brand"],
+                "source": t_data["brand"],
+                "similarity": round(score, 4) if pd.notna(score) else np.nan
+            })
+            
+    # 3. Generate and Export Output Dataframe
     df_results = pd.DataFrame(results)
     
-    # Export using the manually provided path and the established semicolon separator
-    df_results.to_csv(OUTPUT_FILE, sep=';', index=False)
-    print(f"Finished! Exported results to: {OUTPUT_FILE}")
+    # Create the requested output folder if it does not exist yet
+    os.makedirs(os.path.dirname(output_file) or '.', exist_ok=True)
+    
+    # Export using the established semicolon separator
+    df_results.to_csv(output_file, sep=';', index=False)
+    
+    print(f"Finished! Exported {len(df_results)} comparison results to: {output_file}")
 
 
 if __name__ == "__main__":
     # ==========================================
     # TESTDATA
     # ==========================================
+
+    INPUT_FILE = r".\4_ngrams\4_original.csv"     
+    OUTPUT_FILE = r".\5_similarity\5_original.csv" 
     
-    FILE_GROUND_TRUTH = r".\4_ngrams\grok.csv"     
-    FILE_TEST_SOURCE = r".\4_ngrams\testdata_without_grok.csv"
-    OUTPUT_FILE = r".\5_similarity\5_grok_testdata.csv"
+    NGRAM_SIZE = 2                              
+    SIMILARITY_MODE = "tversky"                 # "tversky" or "jaccard"
     
-    
-    NGRAM_SIZE = 3                              
-    SIMILARITY_MODE = "tversky" # "tversky" or "jaccard"
-    
-    compare_datasets(FILE_GROUND_TRUTH, FILE_TEST_SOURCE, NGRAM_SIZE, SIMILARITY_MODE)
+    compare_datasets(INPUT_FILE, OUTPUT_FILE, NGRAM_SIZE, SIMILARITY_MODE)
