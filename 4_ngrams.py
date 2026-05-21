@@ -76,13 +76,14 @@ def process_ngrams(input_csv: str, output_csv: str, ngram_sizes: list):
     
     # Iterate through each row, process the JSON structure, and generate Similarity Digests
     for index, row in df.iterrows():
+        
         # Simple console progress tracking
         if (index + 1) % 500 == 0 or (index + 1) == total_files:
             print(f"Processing n-grams... {index + 1}/{total_files}")
             
         json_str = row.get('structure_json', '[]')
         
-        # Safely parse JSON strings (fallback to empty list on error/NaN)
+        # Safely parse JSON strings
         try:
             tree = json.loads(json_str) if pd.notna(json_str) and json_str != "" else []
         except json.JSONDecodeError:
