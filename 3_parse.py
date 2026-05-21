@@ -71,7 +71,7 @@ class Mp4Parser:
             self.statistics = {
                 "total_boxes": len(clean_str) // 4,
                 "contains_uuid": "uuid" in self.signature_string,
-                "parsing_errors": "." in self.signature_string
+                "parsing_errors": "...." in self.signature_string
             }
             
             # Return the structured result
@@ -136,20 +136,25 @@ class Mp4Parser:
             # Sanity check: box size must be at least the header size
             if box_size < header_size:
                 break
+            
+            # Sanity check: box must fit within the remaining bytes of this level
+            if box_type == b'\x00\x00\x00\x00':
+                break
 
             box_type_str = box_type.decode('latin1', errors='replace')
 
-            # Failsafe: Offset desynchronization. if the box type contains null bytes, it's likely a parsing error, 
-            # we add a placeholder (".") and break to avoid infinite loops
+            # Failsafe: Offset desynchronization
+            # Debug only: Add "...." a 4CC as placeholder
             if '\x00' in box_type_str:
-                nodes.append({"type": "."})
+                print(f"Warning: Parsing error (null bytes in atom) -> {self.file_path}")
+                nodes.append({"type": "...."})
                 break
 
             inner_start = offset + header_size
 
             # Special handling for certain box types to skip version/flags or other non-structural bytes
             # meta: skip 4 bytes if they are all zeros (version/flags)
-            if box_type == b'meta':
+            if box_type == (b'meta'):
                 peek_bytes = mm[inner_start:inner_start+4]
                 if peek_bytes == b'\x00\x00\x00\x00':
                     inner_start += 4
@@ -162,9 +167,17 @@ class Mp4Parser:
             elif box_type in (b'avc1', b'hev1'):
                 inner_start += 78
             
-            # mp4a: skip 28 bytes of reserved fields and codec-specific data
+            # mp4a: Handle QuickTime specific Audio Sample Entry versions
             elif box_type == b'mp4a':
-                inner_start += 28
+                # The version field is located exactly 16 bytes after the box start
+                version = struct.unpack('>H', mm[offset+16:offset+18])[0]
+                
+                if version == 1:
+                    inner_start += 44  # QuickTime V1 adds 16 extra bytes
+                elif version == 2:
+                    inner_start += 64  # QuickTime V2 adds 36 extra bytes
+                else:
+                    inner_start += 28  # Standard ISO / QuickTime V0
 
             # Build Node (dictionary) for the current box
             node = {"type": box_type_str}
