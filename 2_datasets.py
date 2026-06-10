@@ -1,6 +1,7 @@
 import pandas as pd
 from pathlib import Path
 import combine
+import os
 
 # ==========================================
 # CONSTANTS
@@ -91,6 +92,7 @@ def _load_dataset(input_csv: str) -> pd.DataFrame:
 def _save_dataset(df: pd.DataFrame, output_csv: str):
     """Sortiert die Spalten und speichert den DataFrame konsistent als CSV."""
     expected_cols = ['path', 'db_name', 'id', 'brand', 'model', 'content_source', 'content_type', 'media_type', 'processing', 'tampering']
+    print(f"{len(df)} entries processed. Exported to: {output_csv}")
     df[expected_cols].to_csv(output_csv, index=False, sep=';')
 
 

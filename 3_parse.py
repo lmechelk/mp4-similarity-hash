@@ -270,7 +270,7 @@ def process_dataset_with_pandas(input_csv, output_csv):
     
     # Export to new CSV, enforcing semicolon
     df.to_csv(output_csv, sep=';', index=False)
-    print(f"Successfully processed {total_files} files. Exported to: {output_csv}")
+    print(f"Processed {total_files} files. Exported to: {output_csv}")
 
 
 if __name__ == "__main__":

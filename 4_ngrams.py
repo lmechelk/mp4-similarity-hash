@@ -76,11 +76,7 @@ def process_ngrams(input_csv: str, output_csv: str, ngram_sizes: list):
     
     # Iterate through each row, process the JSON structure, and generate Similarity Digests
     for index, row in df.iterrows():
-        
-        # Simple console progress tracking
-        if (index + 1) % 500 == 0 or (index + 1) == total_files:
-            print(f"Processing n-grams... {index + 1}/{total_files}")
-            
+                  
         json_str = row.get('structure_json', '[]')
         
         # Safely parse JSON strings
@@ -103,7 +99,7 @@ def process_ngrams(input_csv: str, output_csv: str, ngram_sizes: list):
         
     # Export keeping all old columns + new digest columns, enforcing semicolon
     df.to_csv(output_csv, sep=';', index=False)
-    print(f"Finished! Exported dataset with Similarity Digests to: {output_csv}")
+    print(f"Exported dataset with {total_files} Similarity Digests to: {output_csv}")
 
 if __name__ == "__main__":
     # ==========================================
