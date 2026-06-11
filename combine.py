@@ -1,38 +1,60 @@
 import pandas as pd
-import sys
 import os
+from pathlib import Path
 
-def combine_csv_files(file1, file2, output_file):
-    """Combines two CSV files by merging their rows and aligning headers."""
-    
-    # Check if files exist
-    if not os.path.isfile(file1) or not os.path.isfile(file2):
-        print(f"Error: One or both input files not found.")
-        sys.exit(1)
 
-    print(f"Loading {file1} and {file2}...")
-    
-    # Read files using semicolon separator
-    df1 = pd.read_csv(file1, sep=';')
-    df2 = pd.read_csv(file2, sep=';')
+def combine_csv_files(inputs: list | str, output_file: str) -> None:
+    """Combine multiple CSV files into one by concatenating rows.
 
-    # Concatenate dataframes: rows are appended, headers are unified
-    combined_df = pd.concat([df1, df2], ignore_index=True, sort=False)
+    Args:
+        inputs:      List of file paths, or a single folder path (all *.csv in that folder).
+        output_file: Path to the combined output CSV.
+    """
+    # Resolve inputs to a list of file paths
+    if isinstance(inputs, str) and os.path.isdir(inputs):
+        files = sorted(Path(inputs).glob("*.csv"))
+    else:
+        files = [Path(f) for f in inputs]
 
-    # Export combined data to new CSV
-    combined_df.to_csv(output_file, sep=';', index=False, encoding='utf-8')
-    
-    print(f"Successfully combined {len(df1)} + {len(df2)} = {len(combined_df)} rows.")
-    print(f"Saved result to: {output_file}")
+    if not files:
+        print("Error: no CSV files found.")
+        return
+
+    dfs = []
+    for f in files:
+        if not f.is_file():
+            print(f"Warning: file not found, skipping -> {f}")
+            continue
+        dfs.append(pd.read_csv(f, sep=";", engine="python"))
+        print(f"Loaded {f.name} ({len(dfs[-1])} rows)")
+
+    if not dfs:
+        print("Error: no valid files loaded. Aborting.")
+        return
+
+    combined = pd.concat(dfs, ignore_index=True, sort=False)
+
+    os.makedirs(os.path.dirname(output_file) or ".", exist_ok=True)
+    combined.to_csv(output_file, sep=";", index=False, encoding="utf-8")
+
+    total = sum(len(d) for d in dfs)
+    print(f"Combined {len(dfs)} files | {total} rows -> {output_file}")
+
 
 if __name__ == "__main__":
-    ########
-    # HERE #
-    ########
-    
-    # Files to combine
-    FILE_1 = "1_selfmade_ai.csv"
-    FILE_2 = "1_selfmade_apple.csv"
-    OUTPUT = "1_selfmade.csv"
+    OUTPUT = r".\7_similarity\original\combined.csv"
 
-    combine_csv_files(FILE_1, FILE_2, OUTPUT)
+    # Option A: explicit file list
+    #combine_csv_files(
+    #    inputs=[
+    #        r".\1_selfmade_ai.csv",
+    #        r".\1_selfmade_apple.csv",
+    #    ],
+    #    output_file=OUTPUT,
+    #)
+
+    # Option B: entire folder
+    combine_csv_files(
+        inputs=r".\7_similarity\original",
+        output_file=OUTPUT,
+    )
