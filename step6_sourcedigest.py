@@ -98,4 +98,4 @@ if __name__ == "__main__":
     create_source_digest(INPUT, OUTPUT, filters={"brand": "Apple"})
     create_source_digest(INPUT, OUTPUT, filters={"brand": "Apple", "processing": "ORIGINAL"})
     create_source_digest(INPUT, OUTPUT, filters={"processing": "youtube"})
-    create_source_digest(INPUT, OUTPUT, filters={"db_name": "SELFMADE"}, label="KI_all")
+
