@@ -1,0 +1,6 @@
+AUC - Similarity Hash Performance - Native, KI-generiere Aufnahmen und Social Media - 2-Gram
+----------------------------------------
+KI-generierte Aufnahmen        1.000
+Native Aufnahmen               1.000
+Social Media                   0.599
+Mean                           0.866

@@ -47,7 +47,11 @@ def create_source_digest(
         if col_lower not in df.columns:
             print(f"Warning: column {col!r} not found, skipping filter.")
             continue
-        mask &= df[col_lower].astype(str).str.lower() == str(val).lower()
+        if isinstance(val, list):
+            val_lower = [str(v).lower() for v in val]
+            mask &= df[col_lower].astype(str).str.lower().isin(val_lower)
+        else:
+            mask &= df[col_lower].astype(str).str.lower() == str(val).lower()
 
     df_filtered = df[mask]
 

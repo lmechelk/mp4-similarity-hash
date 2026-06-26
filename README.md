@@ -40,6 +40,10 @@ PROCESSING
 Primäre Verarbeitung des Videos
 zB native, youtube, whattsapp, ai
 
+PROCESSING_SM
+Indikator für Social Media, basieren auf Spalte Processing
+zB True or False
+
 TAMPERING
 Nachträgliche Veränderung des Videos (nur Eva-DB)
 zB None, Avidemux

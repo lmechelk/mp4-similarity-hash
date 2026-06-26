@@ -78,6 +78,8 @@ PROCESSING_MAP = {
     'df':    ('DEEPFAKE',  'ORIGINAL'),  # image-to-video
 }
 
+_SM_VALUES = {'WHATSAPP', 'YOUTUBE', 'FACEBOOK', 'TIKTOK', 'WEIBO'}
+
 # ==========================================
 # LOADING & SAVING
 # ==========================================
@@ -94,7 +96,7 @@ def _load_dataset(input_csv: str) -> pd.DataFrame:
 def _save_dataset(df: pd.DataFrame, output_csv: str):
     """Sort columns and save DataFrame consistently as CSV."""
     expected_cols = ['path', 'db_name', 'id', 'brand', 'model', 'content_source',
-                     'content_type', 'media_type', 'processing', 'tampering']
+                     'content_type', 'media_type', 'processing', 'processing_sm', 'tampering']
     os.makedirs(os.path.dirname(output_csv) or '.', exist_ok=True)
     print(f"{len(df)} entries processed. Exported to: {output_csv}")
     df[expected_cols].to_csv(output_csv, index=False, sep=';')
@@ -120,6 +122,7 @@ def process_vision(input_csv: str, output_csv: str):
     df['content_type'] = context.map(lambda c: PROCESSING_MAP.get(c, (pd.NA, pd.NA))[0])
     df['processing']   = context.map(lambda c: PROCESSING_MAP.get(c, (pd.NA, pd.NA))[1])
     df['media_type']   = paths.apply(lambda p: p.suffix[1:].upper())
+    df['processing_sm'] = df['processing'].str.upper().isin(_SM_VALUES)
 
     # Static infos
     df['tampering']     = 'NATIVE'
@@ -149,6 +152,7 @@ def process_eva(input_csv: str, output_csv: str):
     df['processing']   = paths.apply(lambda p: p.parent.parent.name.upper())
     df['tampering']    = paths.apply(lambda p: p.parent.name.upper().replace('SUBSET_', '').replace('ORIGINAL', 'NATIVE'))
     df['media_type']   = paths.apply(lambda p: p.suffix[1:].upper())
+    df['processing_sm'] = df['processing'].str.upper().isin(_SM_VALUES)
 
     # Static infos
     df['db_name']       = 'EVA-7K'
@@ -178,6 +182,7 @@ def process_selfmade_apple(input_csv: str, output_csv: str):
     df['tampering']     = 'NATIVE'
     df['db_name']       = 'SELFMADE'
     df['content_source'] = 'DIGITAL_CAMERA'
+    df['processing_sm'] = 'FALSE'
 
     _save_dataset(df, output_csv)
 
@@ -213,29 +218,13 @@ def process_selfmade_ai(input_csv: str, output_csv: str):
     # Static
     df['tampering'] = 'NATIVE'
     df['db_name']   = 'AI'
+    df['processing_sm'] = 'FALSE'
 
     _save_dataset(df, output_csv)
 
 if __name__ == "__main__":
-    process_vision(
-        r".\1_videofiles\1_testdaten3.csv",
-        r".\2_datasets\2_testdaten3.csv")
-
-    process_eva(
-        r".\1_videofiles\1_testdaten2.csv",
-        r".\2_datasets\2_testdaten2.csv")
 
     process_selfmade_ai(
-        r".\1_videofiles\1_testdaten1.csv",
-        r".\2_datasets\2_testdaten1.csv")
+            r".\1_videofiles\1_ai.csv", 
+            r".\2_datasets\2_ai.csv")
 
-    combine.combine_csv_files(
-        inputs=[
-            r".\2_datasets\2_testdaten1.csv",
-            r".\2_datasets\2_testdaten2.csv",
-            r".\2_datasets\2_testdaten3.csv",
-        ],
-        output_file=r".\2_datasets\2_testdaten.csv",
-    )
-
-    # process_selfmade_apple("1_selfmade_apple.csv", "2_selfmade_apple.csv")
