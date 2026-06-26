@@ -1,0 +1,13 @@
+AUC - Similarity Hash Performance - Hersteller - 2-Gram
+----------------------------------------
+Apple_original                 1.000
+Asus_original                  0.963
+Huawei_original                0.973
+LG_original                    1.000
+Microsoft_original             1.000
+OnePlus_original               0.994
+Samsung_original               0.979
+Sony_original                  1.000
+Wiko_original                  1.000
+Xiaomi_original                0.953
+Mean                           0.986

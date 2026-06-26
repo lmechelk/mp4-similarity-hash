@@ -1,0 +1,14 @@
+AUC - Similarity Hash Performance - KI-Generatoren - 2-Gram
+----------------------------------------
+Imagine0.9                     0.828
+Imagine1.5                     0.891
+KlingAIVideo2.6                0.983
+KlingAIVideo3.0                0.983
+OmniFlash                      0.893
+Pika1.5                        0.839
+Pika2.0                        0.982
+Pika2.2                        1.000
+Pika2.5                        0.664
+Sora2                          0.940
+Veo3.1                         0.875
+Mean                           0.898

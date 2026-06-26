@@ -1,0 +1,37 @@
+AUC - Similarity Hash Performance - Geräte - 2-Gram
+----------------------------------------
+D01_ORIGINAL                   0.974
+D02_ORIGINAL                   0.956
+D03_ORIGINAL                   0.984
+D04_ORIGINAL                   1.000
+D05_ORIGINAL                   0.955
+D06_ORIGINAL                   1.000
+D08_ORIGINAL                   0.984
+D09_ORIGINAL                   0.962
+D10_ORIGINAL                   0.985
+D11_ORIGINAL                   0.984
+D12_ORIGINAL                   1.000
+D13_ORIGINAL                   0.982
+D14_ORIGINAL                   0.985
+D15_ORIGINAL                   0.954
+D16_ORIGINAL                   0.985
+D17_ORIGINAL                   1.000
+D18_ORIGINAL                   0.983
+D19_ORIGINAL                   0.954
+D20_ORIGINAL                   0.950
+D21_ORIGINAL                   1.000
+D22_ORIGINAL                   0.969
+D23_ORIGINAL                   0.963
+D24_ORIGINAL                   0.953
+D25_ORIGINAL                   0.986
+D26_ORIGINAL                   0.969
+D27_ORIGINAL                   1.000
+D28_ORIGINAL                   0.963
+D29_ORIGINAL                   0.955
+D30_ORIGINAL                   0.963
+D31_ORIGINAL                   0.967
+D32_ORIGINAL                   0.971
+D33_ORIGINAL                   0.998
+D34_ORIGINAL                   0.992
+D35_ORIGINAL                   1.000
+Mean                           0.977

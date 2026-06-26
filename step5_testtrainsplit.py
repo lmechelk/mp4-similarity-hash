@@ -14,9 +14,9 @@ def split_dataset(
     Args:
         train_selector: single strategy applied to all files, or a list
                         with one entry per input file.
-                        "first" selects the first file per folder;
-                        any other string (e.g. "_0001") selects files
-                        whose stem ends with that suffix.
+                        "first"        – first file per folder becomes training reference
+                        "every_second" – every 2nd file per folder (index 0,2,4,...) becomes training
+                        any other str  – files whose stem ends with that suffix (e.g. "_0001")
     """
     # Normalise selector to a list matching input_files length
     if isinstance(train_selector, str):
@@ -42,6 +42,14 @@ def split_dataset(
             df["_folder"] = df["path"].apply(lambda p: str(Path(str(p)).parent))
             mask = ~df.duplicated(subset="_folder", keep="first")
             df = df.drop(columns="_folder")
+
+        elif selector == "every_second":
+            # Per folder: even indices (0,2,4,...) -> train, odd indices (1,3,5,...) -> test
+            df["_folder"] = df["path"].apply(lambda p: str(Path(str(p)).parent))
+            df["_rank"]   = df.groupby("_folder").cumcount()
+            mask = df["_rank"] % 2 == 0
+            df = df.drop(columns=["_folder", "_rank"])
+
         else:
             mask = df["path"].apply(lambda p: Path(str(p)).stem.endswith(selector))
 
@@ -67,8 +75,8 @@ def split_dataset(
 
 
 if __name__ == "__main__":
-    TRAIN_OUTPUT = r".\5_testtrainsplit\5_train.csv"
-    TEST_OUTPUT  = r".\5_testtrainsplit\5_test.csv"
+    TRAIN_OUTPUT = r".\5_split\5_train.csv"
+    TEST_OUTPUT  = r".\5_split\5_test.csv"
 
     split_dataset(
         input_files=[
@@ -78,5 +86,5 @@ if __name__ == "__main__":
         ],
         train_output=TRAIN_OUTPUT,
         test_output=TEST_OUTPUT,
-        train_selector=["first", "first", "_0001"],
+        train_selector=["first", "every_second", "_0001"],
     )

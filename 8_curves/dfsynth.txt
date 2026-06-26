@@ -1,0 +1,5 @@
+AUC - Similarity Hash Performance - Deepfakes und synthetischen Videos - 2-Gram
+----------------------------------------
+DEEPFAKE                       0.625
+SYNTHETIC                      0.590
+Mean                           0.608

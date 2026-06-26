@@ -34,7 +34,7 @@ def _calculate_similarity(reference_set: set, test_set: set, mode: str) -> float
                 intersection
                 + (PENALTY_MISSING_IN_TEST * missing_in_test)
                 + (PENALTY_EXTRA_IN_TEST   * extra_in_test)
-            )
+            )  # BUG FIX: fehlende schließende Klammer ergänzt
             return intersection / denominator
 
         else:
@@ -102,7 +102,12 @@ def compute_similarity(
             if col_lower not in df_test.columns:
                 print(f"Warning: column {col!r} not found, skipping filter.")
                 continue
-            df_test = df_test[df_test[col_lower].astype(str).str.lower() == str(val).lower()]
+            if isinstance(val, list):
+                # OR-Filter
+                val_lower = [str(v).lower() for v in val]
+                df_test = df_test[df_test[col_lower].astype(str).str.lower().isin(val_lower)]
+            else:
+                df_test = df_test[df_test[col_lower].astype(str).str.lower() == str(val).lower()]
 
     if df_test.empty:
         print(f"Warning: no test rows matched filters {test_filters}. Nothing written.")
@@ -110,7 +115,7 @@ def compute_similarity(
 
     # Build ground_truth_mp4 per row from the same filter keys used in source digest
     def make_mp4_label(row: pd.Series) -> str:
-        parts = [str(row[k]) for k in filter_keys if k in row.index]
+        parts = [str(row[k]).lower() for k in filter_keys if k in row.index]
         return "_".join(parts) if parts else "unknown"
 
     df_test = df_test.copy()
@@ -121,17 +126,20 @@ def compute_similarity(
         c for c in df_test.columns
         if c.startswith("ngram_") and c in source_row.index
     ]
+
     source_sets = {
         col: _split_digest(source_row[col], int(col.split("_")[1]))
         for col in ngram_cols
     }
 
-    # Build result dataframe with fixed-length index
+    # Build result dataframe
     results = pd.DataFrame({
-        "ground_truth_source": [source_label] * len(df_test),
-        "ground_truth_mp4":    df_test["ground_truth_mp4"].values,
+        "ground_truth_source":  [source_label] * len(df_test),
+        "ground_truth_mp4":     df_test["ground_truth_mp4"].values,
+        "filename": df_test["path"].apply(os.path.basename).values if "path" in df_test.columns else [""] * len(df_test),
     })
-    results["true_positive"] = results["ground_truth_mp4"] == source_label
+
+    results["true_positive"] = results["ground_truth_mp4"] == source_label.lower()
 
     for col in ngram_cols:
         ngram_size = int(col.split("_")[1])
@@ -148,7 +156,6 @@ def compute_similarity(
 
         results[sim_col] = scores
 
-    # Resolve output path and export (overwrite)
     if output_file is None:
         output_file = _make_output_path(output_dir, source_label, test_filters or {})
 
@@ -159,12 +166,20 @@ def compute_similarity(
 
 
 if __name__ == "__main__":
+    input7 = [
+        {
+            "source_label": "youtube",
+            "test_filters": {"processing": "youtube"},
+        },
+    ] 
+
     SOURCE_FILE = r".\6_sourcedigest\6_source_digests.csv"
     TEST_FILE   = r".\5_testtrainsplit\5_test.csv"
 
-    compute_similarity(
-        source_file=SOURCE_FILE,
-        source_label="Apple",
-        test_file=TEST_FILE,
-        test_filters={"processing": "ORIGINAL"},
-    )
+    for i in input7:
+        compute_similarity(
+            source_file=SOURCE_FILE,
+            source_label=i["source_label"],
+            test_file=TEST_FILE,
+            test_filters=i["test_filters"],
+        )

@@ -1,0 +1,5 @@
+AUC - Similarity Hash Performance - Native und KI-generiere Aufnahmen - 2-Gram
+----------------------------------------
+AI                             1.000
+DIGITAL_CAMERA_ORIGINAL        1.000
+Mean                           1.000

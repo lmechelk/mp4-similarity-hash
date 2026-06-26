@@ -1,0 +1,31 @@
+AUC - Similarity Hash Performance - Modell - 2-Gram
+----------------------------------------
+A3000_ORIGINAL                 0.986
+A3003_ORIGINAL                 0.971
+AscendG6_ORIGINAL              0.998
+D290_ORIGINAL                  1.000
+GalaxyS3_ORIGINAL              0.984
+GalaxyS3Mini_ORIGINAL          0.987
+GalaxyS4Mini_ORIGINAL          0.967
+GalaxyS5_ORIGINAL              1.000
+GalaxyTab3_ORIGINAL            0.984
+GalaxyTabA_ORIGINAL            1.000
+GalaxyTrendPlus_ORIGINAL       0.969
+Honor5_ORIGINAL                0.963
+iPad2_ORIGINAL                 0.982
+iPadmini_ORIGINAL              0.950
+iPhone4_ORIGINAL               0.962
+iPhone4s_ORIGINAL              0.940
+iPhone5_ORIGINAL               0.944
+iPhone5c_ORIGINAL              0.919
+iPhone6_ORIGINAL               0.953
+iPhone6Plus_ORIGINAL           0.954
+Lumia640LTE_ORIGINAL           1.000
+P89_ORIGINAL                   0.963
+P9_ORIGINAL                    0.984
+P9lite_ORIGINAL                0.985
+RedmiNote3_ORIGINAL            0.953
+Ridge4G_ORIGINAL               1.000
+XperiaZ1Compact_ORIGINAL       1.000
+Zenfone2Laser_ORIGINAL         0.963
+Mean                           0.974

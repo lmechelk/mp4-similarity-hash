@@ -1,0 +1,13 @@
+AUC - Similarity Hash Performance - Bearbeitungen - 2-Gram
+----------------------------------------
+DIGITAL_CAMERA_avidemux        0.641
+DIGITAL_CAMERA_exiftool        0.641
+DIGITAL_CAMERA_ffmpeg1         0.641
+DIGITAL_CAMERA_ffmpeg2         0.641
+DIGITAL_CAMERA_ffmpeg3         0.641
+DIGITAL_CAMERA_ffmpeg4         0.641
+DIGITAL_CAMERA_ffmpeg5         0.709
+DIGITAL_CAMERA_kdenlive        0.653
+DIGITAL_CAMERA_native          0.500
+DIGITAL_CAMERA_premiere        0.641
+Mean                           0.635

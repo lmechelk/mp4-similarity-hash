@@ -147,8 +147,10 @@ class Mp4Parser:
             # Debug only: Add "...." a 4CC as placeholder
             if '\x00' in box_type_str:
                 print(f"Warning: Parsing error (null bytes in atom) -> {self.file_path}")
-                nodes.append({"type": "...."})
-                break
+                # nodes.append({"type": "...."})
+                # Skip this box and try to resync at the next header (move forward by at least 8 bytes to avoid infinite loop)
+                offset += max(box_size if box_size >= 8 else 8, 8)
+                continue 
 
             inner_start = offset + header_size
 
