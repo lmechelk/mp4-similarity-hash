@@ -42,7 +42,7 @@ def combine_csv_files(inputs: list | str, output_file: str) -> None:
 
 
 if __name__ == "__main__":
-    OUTPUT = r".\7_similarity\brands.csv"
+    OUTPUT = r".\4_ngrams\combined.csv"
 
     # Option A: explicit file list
     #combine_csv_files(
@@ -55,6 +55,6 @@ if __name__ == "__main__":
 
     # Option B: entire folder
     combine_csv_files(
-        inputs=r".\7_similarity\brands",
+        inputs=r".\4_ngrams",
         output_file=OUTPUT,
     )

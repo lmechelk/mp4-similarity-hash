@@ -1,0 +1,8 @@
+AUC - Similarity Hash Performance - Social Media - 2-Gram
+----------------------------------------
+FACEBOOK_native                1.000
+TIKTOK_native                  1.000
+WEIBO_native                   0.854
+WHATSAPP_native                1.000
+YOUTUBE_native                 1.000
+Mean                           0.971

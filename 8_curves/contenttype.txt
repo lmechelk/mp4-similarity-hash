@@ -1,0 +1,6 @@
+AUC - Similarity Hash Performance - Aufnahmeart - 2-Gram
+----------------------------------------
+FLAT_ORIGINAL                  0.500
+INDOOR_ORIGINAL                0.513
+OUTDOOR_ORIGINAL               0.500
+Mean                           0.504
